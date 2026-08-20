@@ -6,14 +6,19 @@ DeepSeek Harness (DSH) 的 SSH 远程工作区插件——**多机并行版**：
 
 ---
 
-## 📌 上游项目
+## 📌 上游项目与版权声明
 
-本项目是 **`dsh-remote`** 的 fork + 改造（MIT License）：
+### 本项目是 `dsh-remote` 的 fork + 改造
 
-- 上游原版：**[flymysql/dsh-remote](https://github.com/flymysql/dsh-remote)**（[npm: dsh-remote](https://www.npmjs.com/package/dsh-remote)）
-- 上游版本：`0.5.10` → 本仓库 `0.6.0`
+本项目基于以下开源项目开发（**非完全原创**），遵守其 **MIT License**：
 
-**与上游的差异（本仓库的改造）：**
+- **上游原版**：[flymysql/dsh-remote](https://github.com/flymysql/dsh-remote)
+- **npm 包**：[`dsh-remote`](https://www.npmjs.com/package/dsh-remote)
+- **上游作者**：flymysql（<flyphp@outlook.com>）
+- **上游版本**：`0.5.10` → 本仓库 `0.6.0`
+- **许可**：MIT License，版权见 [LICENSE](LICENSE)（`Copyright (c) 2026 dsh-remote contributors`）
+
+### 本仓库的改造内容
 
 | 维度 | 上游 dsh-remote | 本仓库 dsh-ssh-remote |
 |---|---|---|
@@ -22,6 +27,12 @@ DeepSeek Harness (DSH) 的 SSH 远程工作区插件——**多机并行版**：
 | 状态查看 | 单机状态 | `rw_info` / `/dsh-ssh-remote/status` 列出**全部机器**及各自连接状态 |
 | 新增工具 | — | `rw_switch`（切换 current）、`rw_disconnect(指定机)` |
 | rc.8 适配 | ❌ peerDeps 仍为 `^0.1.0-rc.6`，装上会破坏 scope 链 | ✅ 按 rc.8 **用户 preset** 挂载，进入 agent scope，不破坏核心功能 |
+
+### 贡献归属
+
+- 底层 SSH 引擎、SFTP 同步、机器注册表、多数 `rw_*` 工具与前端设置面板：来自 **flymysql/dsh-remote**
+- 多池并行改造、`machineId` 参数、`rw_switch`、rc.8 preset 适配：本仓库（cslht11）的增量修改
+- 上游如有新版本，欢迎优先参考上游变更并合并：<https://github.com/flymysql/dsh-remote>
 
 ---
 
