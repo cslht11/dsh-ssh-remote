@@ -1,0 +1,4 @@
+# dsh-ssh-remote bundle patch: inserts this plugin into a profile's layer stack.
+- insert:
+    - id: dsh-ssh-remote
+      name: dsh-ssh-remote
