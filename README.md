@@ -53,12 +53,39 @@ DeepSeek Harness (DSH) 的 SSH 远程工作区插件——**多机并行版**：
 
 ---
 
-## 🚀 安装（rc.8 正确方式）
+## 🚀 安装（一键脚本，推荐）
 
-rc.8 要求工具插件通过 **用户 preset** 挂载进 agent scope，而不是直接塞 profile bundle。
+适配 DSH **0.1.0-rc.8**。在一台装好 DSH 的机器上，只需三步：
+
+```bash
+# 1) 克隆本项目
+git clone https://github.com/cslht11/dsh-ssh-remote.git
+cd dsh-ssh-remote
+
+# 2) 一键安装（自动装依赖 + 注册 symlink + 创建 SSH 增强预设）
+bash install.sh
+
+# 3) 重启 DSH
+kill $(pgrep -f 'dsh web') 2>/dev/null; dsh web
+```
+
+然后浏览器打开 DSH Web → **新建会话 → 选择预设「SSH 增强模式」**，即可使用 `rw_*` 工具。
+
+> **install.sh 自动做了什么：**
+> 1. 定位 DSH 全局安装目录（`npm root -g`）
+> 2. 在本仓库目录安装依赖（ssh2 / schemastery），使插件自包含
+> 3. 将插件 symlink 到 `~/.dsh/profiles/web/node_modules/dsh-ssh-remote`（让 preset 的 bare name 可解析）
+> 4. 创建用户预设 `~/.dsh/.agent-presets/ssh-enhanced/`：基于**官方 standard 预设**（继承全部官方工具），并追加 dsh-ssh-remote 一行（挂载进 agent scope）
+>
+> 脚本幂等：重复运行不会重复添加；卸载用 `bash install.sh --uninstall`。
+
+---
+
+## 🛠 手动安装（想自己控制每一步时）
+
+与 `install.sh` 等价，分步如下：
 
 ### 第 1 步：克隆并安装插件依赖
-
 ```bash
 git clone https://github.com/cslht11/dsh-ssh-remote.git
 cd dsh-ssh-remote
@@ -66,40 +93,30 @@ npm install --no-save     # 安装 ssh2 / schemastery 等依赖
 ```
 
 ### 第 2 步：注册进 profile 的 node_modules
-
 让 preset 的 bare name `dsh-ssh-remote` 能被解析（baseUrl = profile 目录）：
-
 ```bash
 mkdir -p ~/.dsh/profiles/web/node_modules
-ln -sfn "$(pwd)" ~/.dsh/profiles/web/node_modules/dsh-ssh-remote
+ln -sfn "$PWD" ~/.dsh/profiles/web/node_modules/dsh-ssh-remote
 ```
 
 ### 第 3 步：创建用户 preset（挂载插件进 agent scope）
-
 ```bash
+# 3.1 定位 DSH 安装目录，复制官方 standard preset 作为 base（继承全部官方工具）
+GLOBAL_ROOT=$(npm root -g)
 mkdir -p ~/.dsh/.agent-presets/ssh-enhanced
-cp config/agent-presets/standard/agent.cordis.yml ~/.dsh/.agent-presets/ssh-enhanced/ 2>/dev/null \
-  || npm root -g >/dev/null 2>&1
+cp "$GLOBAL_ROOT/@deepseek-ai/dsh/config/agent-presets/standard/agent.cordis.yml" \
+   ~/.dsh/.agent-presets/ssh-enhanced/agent.cordis.yml
 ```
 
-（若上面没复制到，从 DSH 安装目录拿官方 standard preset 作为 base：）
-
-```bash
-DSH_PKG=$(node -e "console.log(require('@deepseek-ai/dsh/package.json').replace('/package.json',''))")
-cp "$DSH_PKG/config/agent-presets/standard/agent.cordis.yml" ~/.dsh/.agent-presets/ssh-enhanced/
-```
-
-然后在 `~/.dsh/.agent-presets/ssh-enhanced/agent.cordis.yml` 末尾追加：
-
+在 `~/.dsh/.agent-presets/ssh-enhanced/agent.cordis.yml` 末尾追加：
 ```yaml
-# ── SSH 远程工作区 ──────────────────────────────────────────────────────────
+# ── SSH 远程工作区（dsh-ssh-remote 插件）────────────────────────────────────
 - id: ssh-remote
   name: 'dsh-ssh-remote'
   config: {}
 ```
 
-再创建元数据 `~/.dsh/.agent-presets/ssh-enhanced/preset.yml`：
-
+创建元数据 `~/.dsh/.agent-presets/ssh-enhanced/preset.yml`：
 ```yaml
 name: SSH 增强模式
 description: 标准编码 Agent + 多机 SSH 远程工作区。
@@ -107,31 +124,66 @@ order: 50
 ```
 
 ### 第 4 步：重启并选择 preset
-
 ```bash
 kill $(pgrep -f 'dsh web') 2>/dev/null; dsh web
 ```
-
-浏览器打开 DSH Web → 新会话的 **模型/预设选择** 里选 **「SSH 增强模式」**，即可使用 `rw_*` 工具。
+浏览器打开 DSH Web → 新会话的预设选择里选 **「SSH 增强模式」**。
 
 ---
 
 ## 🛠 使用示例
 
+### 对话方式（模型直接驱动 SSH）
+
 ```
 我在 192.168.1.10 和 192.168.1.20 有两台服务器，帮我：
 1. rw_connect 添加 192.168.1.10（root，密钥 /Users/me/.ssh/id_rsa）
 2. rw_connect 添加 192.168.1.20（root，密码 xxx）
-3. rw_pick_workspace (machineId=第一台, path=/srv/app) 
-4. rw_exec (machineId=第一台, command='docker compose ps')
-5. rw_list_dir 看 /srv/app 的文件
+3. rw_pick_workspace (machineId=<第一台id>, path=/srv/app)
+4. rw_exec (machineId=<第一台id>, command='docker compose ps')
+5. rw_list_dir (machineId=<第一台id>, path=/srv/app) 看文件
+6. rw_read_file (machineId=<第一台id>, path=/srv/app/src/main.py)
+7. rw_write_file (machineId=<第一台id>, path=/srv/app/config.yml, content='...')
+8. rw_sync (machineId=<第一台id>) 把远程工作区镜像到本地 ~/.dsh/remote-workspaces/
 ```
+
+### 工具一览（都支持 `machineId` 指定目标机，不传 = 当前机）
+
+| 工具 | 作用 |
+|---|---|
+| `rw_info` | 查看**全部**已注册机器及连接状态、当前工作区 |
+| `rw_connect` | 注册/连接一台机器（新机器传 host/user/password/privateKeyPath） |
+| `rw_switch` | 切换当前机器（后续不传 machineId 时默认用它） |
+| `rw_pick_workspace` | 为指定机器设置远程工作区目录 |
+| `rw_list_dir` / `rw_read_file` | 浏览 / 读取远程文件 |
+| `rw_write_file` | 直接写远程文件（自动建父目录） |
+| `rw_exec` | 在远程执行 shell 命令 |
+| `rw_sync` / `rw_push` | 远程↔本地镜像 双向 SFTP 同步 |
+| `rw_disconnect` | 断开指定机器（其他机器不受影响） |
+
+### 设置面板方式
+
+浏览器 DSH Web → **设置 → 远程工作区**：增删改查机器、测试连接、切换当前机。
+
+---
+
+## 🔄 适配其他 DSH 版本 / 其他设备
+
+**本插件适配 `@deepseek-ai/dsh@0.1.0-rc.8`**（以 `~/.dsh/.agent-presets/` 用户预设机制挂载）。换到其他版本时：
+
+1. **DSH 官方升级后**：通常 preset 机制不变，`bash install.sh --uninstall && bash install.sh` 重装即可（脚本幂等，会检测版本）。
+2. **其他设备部署**：任意机器上 `git clone` → `bash install.sh` → 重启 DSH 即可，无需手动复制任何文件（依赖、symlink、preset 全部自动完成）。
+3. **多台机器**：插件的机器注册表存在 `~/.dsh/remote-workspaces/machines.json`，每台设备独立维护；如需多设备共享同一批机器，可手动把该文件复制到新设备。
 
 ---
 
 ## ↩️ 卸载
 
 ```bash
+# 一键卸载（推荐）
+bash install.sh --uninstall
+
+# 或手动：
 rm -rf ~/.dsh/profiles/web/node_modules/dsh-ssh-remote
 rm -rf ~/.dsh/.agent-presets/ssh-enhanced
 ```
