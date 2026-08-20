@@ -2,14 +2,18 @@
 # =============================================================================
 # install.sh — dsh-ssh-remote 一键安装（DSH 0.1.0-rc.8）
 #
+# 设计原则：不新增「SSH 专用模式」。SSH 工具加入所有**现有模式**
+# （standard / code / minimal / cordis），本地与远程都是同一套模式，
+# 只是多了一组 rw_* 工具、工作路径可指向远程服务器。
+#
 # 自动完成：
 #   1. 定位 DSH 全局安装目录（npm root -g）
 #   2. 在插件仓库目录安装依赖（ssh2 / schemastery）
-#   3. 将插件 symlink 进 profile 的 node_modules（让 preset 的 bare name 可解析）
-#   4. 创建用户 preset ~/.dsh/.agent-presets/ssh-enhanced/
-#        - 基于官方 standard preset（继承全部官方工具）
-#        - 追加 dsh-ssh-remote 一行（挂载进 agent scope）
-#   5. 提示重启 DSH 并选择「SSH 增强模式」
+#   3. 将插件 symlink 进 profile 的 node_modules（preset bare name 可解析）
+#   4. 对每个官方模式：在 ~/.dsh/.agent-presets/<模式名>/ 创建同名 preset，
+#      内容 = 官方原版 agent.cordis.yml + preset.yml，并追加 dsh-ssh-remote
+#      工具行（first-root-wins：用户同名 preset 覆盖官方，模式名不变）
+#   5. 提示重启 DSH（重启后各模式直接可用，无需切换）
 #
 # 用法: bash install.sh
 # 卸载: bash install.sh --uninstall
@@ -23,8 +27,9 @@ warn() { echo -e "${YELLOW}[!]${NC} $*"; }
 err()  { echo -e "${RED}[x]${NC} $*"; }
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PRESET_ID="ssh-enhanced"
 PLUGIN_NAME="dsh-ssh-remote"
+# 官方已有的模式（即 preset id），全部增强
+PRESETS="standard code minimal cordis"
 
 # ── 定位 ──────────────────────────────────────────────────────────────────
 GLOBAL_ROOT=$(npm root -g 2>/dev/null || echo "")
@@ -46,36 +51,64 @@ VERSION=$(node -e "console.log(require('$DSH_DIR/package.json').version)" 2>/dev
 ok "DSH: $DSH_DIR (v$VERSION)"
 
 PROFILE="$HOME/.dsh/profiles/web"
-PRESET_DIR="$HOME/.dsh/.agent-presets/$PRESET_ID"
+USER_PRESETS="$HOME/.dsh/.agent-presets"
 
 # ── 卸载 ───────────────────────────────────────────────────────────────────
 if [ "${1:-}" = "--uninstall" ]; then
   info "卸载中…"
   rm -f "$PROFILE/node_modules/$PLUGIN_NAME"
-  rm -f "$PROFILE/node_modules/.pnpm/$PLUGIN_NAME" 2>/dev/null
-  rm -rf "$PRESET_DIR"
-  # 从 profile package.json 去掉依赖（若有）
-  if [ -f "$PROFILE/package.json" ]; then
-    python3 - "$PROFILE/package.json" << 'PYEOF' 2>/dev/null || true
-import json, sys
+  # 从每个 mode preset 移除 SSH 工具行（保留模式本身——其余行是官方原版）
+  for p in $PRESETS; do
+    f="$USER_PRESETS/$p/agent.cordis.yml"
+    if [ -f "$f" ]; then
+      python3 - "$f" << 'PYEOF'
+import sys
 p = sys.argv[1]
-with open(p) as f: d = json.load(f)
-deps = d.get('dependencies', {})
-if PLUGIN in deps:
-    del deps[PLUGIN]
-    with open(p, 'w') as f: json.dump(d, f, indent=2)
-    print('removed from profile deps')
+with open(p) as f:
+    lines = f.readlines()
+
+def find_name_block(lines):
+    for i, line in enumerate(lines):
+        if "name: 'dsh-ssh-remote'" in line:
+            return i
+    return None
+
+# 阶段 1: 删除 name 块（及其 - id / 空行 / SSH 注释标题）
+name_idx = find_name_block(lines)
+if name_idx is not None:
+    begin = name_idx
+    for k in range(name_idx - 1, max(-1, name_idx - 8), -1):
+        t = lines[k].strip()
+        if t == '- id: ssh-remote' or t == '' or t.startswith('# ── SSH 远程工作区') or t.startswith('# SSH 远程工作区'):
+            begin = k
+            continue
+        break
+    end = name_idx + 1
+    while end < len(lines):
+        cur = lines[end]
+        if cur.startswith('  ') or cur.startswith('\t') or cur.strip() == '':
+            end += 1
+        else:
+            break
+    lines = lines[:begin] + lines[end:]
+
+# 阶段 2: 清理任何残留的 SSH 注释行（幂等）
+lines = [l for l in lines if not (l.strip().startswith('# ── SSH 远程工作区') or l.strip().startswith('# SSH 远程工作区'))]
+
+with open(p, 'w') as f:
+    f.writelines(lines)
 PYEOF
-  fi
-  ok "已移除 symlink 与 preset"
+      ok "已从 $p 移除 SSH 工具行"
+    fi
+  done
   info "重启生效: kill \$(pgrep -f 'dsh web') 2>/dev/null; dsh web"
   exit 0
 fi
 
-# ── 1. 安装依赖（在本仓库目录，使插件自包含）──────────────────────────────
+# ── 1. 安装依赖（自包含）───────────────────────────────────────────────────
 info "安装插件依赖 (ssh2 / schemastery)…"
 if [ ! -d "$SCRIPT_DIR/node_modules/ssh2" ]; then
-  (cd "$SCRIPT_DIR" && npm install --no-save --silent 2>&1 | tail -2) || { warn "依赖安装输出见上（可重试 npm install）"; }
+  (cd "$SCRIPT_DIR" && npm install --no-save --silent 2>&1 | tail -2) || true
   [ -d "$SCRIPT_DIR/node_modules/ssh2" ] && ok "依赖就位" || { err "依赖安装失败，请手动: cd $SCRIPT_DIR && npm install"; exit 1; }
 else
   ok "依赖已存在"
@@ -90,50 +123,51 @@ fi
 if ln -sfn "$SCRIPT_DIR" "$PROFILE/node_modules/$PLUGIN_NAME"; then
   ok "symlink: $PROFILE/node_modules/$PLUGIN_NAME → $SCRIPT_DIR"
 else
-  if cp -R "$SCRIPT_DIR/lib" "$PROFILE/node_modules/$PLUGIN_NAME" 2>/dev/null; then
-    ok "（symlink 失败，改用复制方式）$PLUGIN_NAME → profile node_modules"
-  else
-    err "无法注册到 profile node_modules"; exit 1
-  fi
+  err "无法注册到 profile node_modules"; exit 1
 fi
 
-# ── 3. preset：基于官方 standard 追加 SSH 行 ───────────────────────────────
-OFFICIAL_PRESET="$DSH_DIR/config/agent-presets/standard/agent.cordis.yml"
-mkdir -p "$PRESET_DIR"
-if [ ! -f "$PRESET_DIR/agent.cordis.yml" ]; then
-  if [ -f "$OFFICIAL_PRESET" ]; then
-    cp "$OFFICIAL_PRESET" "$PRESET_DIR/agent.cordis.yml"
-    ok "base preset 来自官方 standard (继承全部官方工具)"
-  else
-    warn "官方 standard preset 未找到（$OFFICIAL_PRESET），创建最小 preset"
-    printf -- "- id: tool-bash\n  name: '@deepseek-ai/dsh-tool-bash'\n" > "$PRESET_DIR/agent.cordis.yml"
-  fi
-else
-  info "preset 已存在，保留"
-fi
+# ── 3. 增强每个官方模式（同名用户 preset 覆盖，模式名不变）────────────────
+echo ""
+info "增强现有模式（不新增模式，SSH 工具加入每个模式）:"
+for p in $PRESETS; do
+  OFFICIAL_YML="$DSH_DIR/config/agent-presets/$p/agent.cordis.yml"
+  OFFICIAL_META="$DSH_DIR/config/agent-presets/$p/preset.yml"
+  TARGET_DIR="$USER_PRESETS/$p"
+  mkdir -p "$TARGET_DIR"
 
-# 追加 SSH 插件行（幂等：已存在则不重复）
-if ! grep -q "name: '$PLUGIN_NAME'" "$PRESET_DIR/agent.cordis.yml" 2>/dev/null; then
-  cat >> "$PRESET_DIR/agent.cordis.yml" << EOF
+  # agent.cordis.yml：首次 = 官方原版；以后保留
+  if [ ! -f "$TARGET_DIR/agent.cordis.yml" ] && [ -f "$OFFICIAL_YML" ]; then
+    cp "$OFFICIAL_YML" "$TARGET_DIR/agent.cordis.yml"
+    ok "  $p: 用户 preset 基于官方原版创建"
+  elif [ ! -f "$TARGET_DIR/agent.cordis.yml" ]; then
+    warn "  $p: 官方 preset 文件缺失（$OFFICIAL_YML），跳过"
+    continue
+  fi
+
+  # preset.yml 元数据：继承官方（模式名/描述不变）
+  if [ ! -f "$TARGET_DIR/preset.yml" ] && [ -f "$OFFICIAL_META" ]; then
+    cp "$OFFICIAL_META" "$TARGET_DIR/preset.yml"
+  fi
+
+  # 追加 SSH 插件行（幂等）
+  if ! grep -q "name: '$PLUGIN_NAME'" "$TARGET_DIR/agent.cordis.yml" 2>/dev/null; then
+    cat >> "$TARGET_DIR/agent.cordis.yml" << EOF
 
 # ── SSH 远程工作区（dsh-ssh-remote 插件）───────────────────────────────────
 - id: ssh-remote
   name: '$PLUGIN_NAME'
   config: {}
 EOF
-  ok "agent.cordis.yml 已追加 $PLUGIN_NAME"
-else
-  info "agent.cordis.yml 已含 $PLUGIN_NAME（幂等跳过）"
-fi
+    ok "  $p: 已追加 SSH 工具"
+  else
+    info "  $p: 已含 SSH 工具（幂等跳过）"
+  fi
+done
 
-# preset.yml 元数据
-if [ ! -f "$PRESET_DIR/preset.yml" ]; then
-  cat > "$PRESET_DIR/preset.yml" << 'EOF'
-name: SSH 增强模式
-description: 标准编码 Agent + 多机 SSH 远程工作区（同时连接多台服务器）。
-order: 50
-EOF
-  ok "preset.yml 已创建"
+# ── 4. 移除旧的「SSH 增强模式」（若有，避免残留误导）────────────────────
+if [ -d "$USER_PRESETS/ssh-enhanced" ]; then
+  rm -rf "$USER_PRESETS/ssh-enhanced"
+  warn "已移除旧「SSH 增强模式」（设计中已不再需要单独模式）"
 fi
 
 # ── 完成 ──────────────────────────────────────────────────────────────────
@@ -143,8 +177,9 @@ echo -e "${GREEN}  安装完成！${NC}"
 echo -e "${CYAN}════════════════════════════════════════════════════════════${NC}"
 echo ""
 echo -e "1. 重启 DSH:  ${YELLOW}kill \$(pgrep -f 'dsh web') 2>/dev/null; dsh web${NC}"
-echo -e "2. 浏览器打开 DSH Web → 新建会话 → 选择预设「${YELLOW}SSH 增强模式${NC}」"
-echo -e "3. 在对话里用 rw_connect 添加服务器，或用设置面板 → 远程工作区 管理机器"
+echo -e "2. 浏览器打开 DSH Web → 新建会话 → 选你平时用的模式即可"
+echo -e "   （standard/code/minimal 都已内置 SSH 工具，无需切换新模式）"
+echo -e "3. 设置 → 远程工作区 管理服务器；对话里用 rw_connect / rw_exec 等工具"
 echo ""
 info "卸载: bash install.sh --uninstall"
 echo ""
