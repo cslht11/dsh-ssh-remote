@@ -6,7 +6,7 @@
   "author": "cslht11",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cslht11/dsh-custom-patches.git"
+    "url": "git+https://github.com/cslht11/dsh-ssh-remote.git"
   },
   "keywords": [
     "deepseek-harness",
