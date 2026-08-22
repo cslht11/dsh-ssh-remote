@@ -1,4 +1,6 @@
 # dsh-ssh-remote
+> 📖 [English](README.md)
+
 
 DeepSeek Harness (DSH) 的 SSH 远程工作区插件——**多机并行版**：管理多台服务器、**同时保持多个 SSH 连接**，在每台上选择远程工作区，Agent 可直接查看 / 编辑 / 执行远程文件。
 
