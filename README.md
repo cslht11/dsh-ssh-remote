@@ -1,201 +1,201 @@
 # dsh-ssh-remote
 
-DeepSeek Harness (DSH) 的 SSH 远程工作区插件——**多机并行版**：管理多台服务器、**同时保持多个 SSH 连接**，在每台上选择远程工作区，Agent 可直接查看 / 编辑 / 执行远程文件。
+DeepSeek Harness (DSH) SSH Remote Workspace Plugin — **multi-machine parallel edition**: manage multiple servers, **maintain multiple SSH connections simultaneously**, pick a remote workspace on each, and let your Agent directly view / edit / execute remote files.
 
-> 适配版本：**`@deepseek-ai/dsh@0.1.1-rc.2`**（profile 上运行的 DSH Web）
+> Target version: **`@deepseek-ai/dsh@0.1.1-rc.2`** (DSH Web running on profile)
 
 ---
 
-## 📌 上游项目与版权声明
+## 📌 Upstream & Copyright
 
-### 本项目是 `dsh-remote` 的 fork + 改造
+### This project is a fork + modification of `dsh-remote`
 
-本项目基于以下开源项目开发（**非完全原创**），遵守其 **MIT License**：
+This project is built on the following open-source project (**not entirely original**), under **MIT License**:
 
-- **上游原版**：[flymysql/dsh-remote](https://github.com/flymysql/dsh-remote)
-- **npm 包**：[`dsh-remote`](https://www.npmjs.com/package/dsh-remote)
-- **上游作者**：flymysql（<flyphp@outlook.com>）
-- **上游版本**：`0.5.10` → 本仓库 `0.6.0`
-- **许可**：MIT License，版权见 [LICENSE](LICENSE)（`Copyright (c) 2026 dsh-remote contributors`）
+- **Upstream original**: [flymysql/dsh-remote](https://github.com/flymysql/dsh-remote)
+- **npm package**: [`dsh-remote`](https://www.npmjs.com/package/dsh-remote)
+- **Upstream author**: flymysql (<flyphp@outlook.com>)
+- **Upstream version**: `0.5.10` → this repo `0.6.0`
+- **License**: MIT License, copyright in [LICENSE](LICENSE) (`Copyright (c) 2026 dsh-remote contributors`)
 
-### 本仓库的改造内容
+### What this repo changes
 
-| 维度 | 上游 dsh-remote | 本仓库 dsh-ssh-remote |
+| Dimension | Upstream dsh-remote | This repo dsh-ssh-remote |
 |---|---|---|
-| 连接模型 | **单连接池**（切换机器时断开旧连接） | **多池并行**（每台机器独立 SshPool，可同时连接） |
-| 目标选择 | 仅 current 机 | 所有工具/路由支持 `machineId` 参数（不传 = current 机） |
-| 状态查看 | 单机状态 | `rw_info` / `/dsh-ssh-remote/status` 列出**全部机器**及各自连接状态 |
-| 新增工具 | — | `rw_switch`（切换 current）、`rw_disconnect(指定机)` |
-| rc.2 适配 | ❌ peerDeps 仍为 `^0.1.0-rc.6`，装上会破坏 scope 链 | ✅ 按 rc.2 **用户 preset** 挂载，进入 agent scope，不破坏核心功能 |
+| Connection model | **Single connection pool** (disconnects old connection when switching machines) | **Multi-pool parallel** (each machine has its own SshPool, simultaneous connections) |
+| Target selection | Current machine only | All tools/routes support `machineId` parameter (omitted = current machine) |
+| Status view | Single machine status | `rw_info` / `/dsh-ssh-remote/status` lists **all machines** and their connection status |
+| New tools | — | `rw_switch` (switch current), `rw_disconnect` (disconnect specific machine) |
+| rc.2 compatibility | ❌ peerDeps still `^0.1.0-rc.6`, breaks scope chain when installed | ✅ Mounted via rc.2 **user preset**, enters agent scope without breaking core functionality |
 
-### 贡献归属
+### Contribution attribution
 
-- 底层 SSH 引擎、SFTP 同步、机器注册表、多数 `rw_*` 工具与前端设置面板：来自 **flymysql/dsh-remote**
-- 多池并行改造、`machineId` 参数、`rw_switch`、rc.2 preset 适配：本仓库（cslht11）的增量修改
-- 上游如有新版本，欢迎优先参考上游变更并合并：<https://github.com/flymysql/dsh-remote>
-
----
-
-## ✨ 功能
-
-- **多机 SSH 注册表**：任意多台服务器（host/port/user + 密码或私钥 + 口令），存于 `~/.dsh/remote-workspaces/machines.json`
-- **同时连接多台**：每台机器独立连接池，互不干扰
-- **远程工作区**：为每台机器选择远程目录（自动补全/浏览），本地镜像 `~/.dsh/remote-workspaces/<host>/...`
-- **双向 SFTP 同步**：`rw_sync`（远程→镜像）、`rw_push`（镜像→远程）
-- **Agent 远程操作工具**（`rw_*` 系列）：
-  - `rw_info` — 查看全部机器状态 + 当前工作区
-  - `rw_connect` / `rw_switch` — 注册 / 连接 / 切换机器
-  - `rw_pick_workspace` — 为指定机器设置远程工作区
-  - `rw_list_dir` / `rw_read_file` / `rw_write_file` / `rw_exec` — 浏览、读、写、执行远程文件/命令
-  - `rw_sync` / `rw_push` — 远程↔本地镜像同步
-  - `rw_disconnect` — 断开指定机器（其他机器不受影响）
-- **设置面板**：Settings → 远程工作区（多机增删改查、当前机、测试连接）
+- Underlying SSH engine, SFTP sync, machine registry, most `rw_*` tools, and frontend settings panel: from **flymysql/dsh-remote**
+- Multi-pool parallel refactor, `machineId` parameter, `rw_switch`, rc.2 preset adaptation: incremental changes by this repo (cslht11)
+- When upstream publishes new versions, we优先参考上游变更并合并: <https://github.com/flymysql/dsh-remote>
 
 ---
 
-## 🚀 安装（一键脚本，推荐）
+## ✨ Features
 
-适配 DSH **0.1.1-rc.2**。在一台装好 DSH 的机器上，只需三步：
+- **Multi-machine SSH registry**: Any number of servers (host/port/user + password or private key + passphrase), stored in `~/.dsh/remote-workspaces/machines.json`
+- **Simultaneous multi-machine connections**: Each machine has an independent connection pool, no interference
+- **Remote workspace**: Select a remote directory per machine (auto-complete/browse), local mirror at `~/.dsh/remote-workspaces/<host>/...`
+- **Bidirectional SFTP sync**: `rw_sync` (remote → mirror), `rw_push` (mirror → remote)
+- **Agent remote operation tools** (`rw_*` series):
+  - `rw_info` — View all machines status + current workspace
+  - `rw_connect` / `rw_switch` — Register / connect / switch machine
+  - `rw_pick_workspace` — Set remote workspace directory for a specific machine
+  - `rw_list_dir` / `rw_read_file` / `rw_write_file` / `rw_exec` — Browse, read, write, execute remote files/commands
+  - `rw_sync` / `rw_push` — Remote ↔ local mirror bidirectional SFTP sync
+  - `rw_disconnect` — Disconnect specific machine (other machines unaffected)
+- **Settings panel**: Settings → Remote Workspace (add/edit/delete machines, test connection, switch current machine)
+
+---
+
+## 🚀 Installation (one-click script, recommended)
+
+Targets DSH **0.1.1-rc.2**. On a machine with DSH installed, three steps:
 
 ```bash
-# 1) 克隆本项目
+# 1) Clone this repo
 git clone https://github.com/cslht11/dsh-ssh-remote.git
 cd dsh-ssh-remote
 
-# 2) 一键安装（自动装依赖 + 注册 symlink + 创建 SSH 增强预设）
+# 2) One-click install (auto-installs deps + registers symlink + creates SSH-enhanced presets)
 bash install.sh
 
-# 3) 重启 DSH
+# 3) Restart DSH
 kill $(pgrep -f 'dsh web') 2>/dev/null; dsh web
 ```
 
-然后重启 DSH、打开 DSH Web → **新建会话 → 选你平时用的模式即可**（standard / code / minimal / cordis 都已内置 `rw_*` 工具，无需切换新模式）。
+Then restart DSH, open DSH Web → **new session → select your usual mode** (standard / code / minimal / cordis all have `rw_*` tools built-in, no mode switching needed).
 
-> **install.sh 自动做了什么：**
-> 1. 定位 DSH 全局安装目录（`npm root -g`）
-> 2. 在本仓库目录安装依赖（ssh2 / schemastery），使插件自包含
-> 3. 将插件 symlink 到 `~/.dsh/profiles/web/node_modules/dsh-ssh-remote`（让 preset 的 bare name 可解析）
-> 4. **增强每个官方模式**：对 standard / code / minimal / cordis 各建**同名用户 preset**（首次复制官方原版 agent.cordis.yml + preset.yml，再追加 dsh-ssh-remote 插件行；first-root-wins：用户 preset 覆盖官方，模式名不变）——SSH 工具直接出现在你现有的每个模式里
-> 5. 移除旧的「SSH 增强模式」（首个版本遗留，现已不需要单独模式）
+> **What install.sh does automatically:**
+> 1. Locates DSH global install dir (`npm root -g`)
+> 2. Installs dependencies in this repo directory (ssh2 / schemastery), making the plugin self-contained
+> 3. Symlinks the plugin to `~/.dsh/profiles/web/node_modules/dsh-ssh-remote` (so preset bare name resolves; baseUrl = profile dir)
+> 4. **Enhances each official mode**: creates **same-named user presets** under `~/.dsh/.agent-presets/<mode>/` for standard / code / minimal / cordis (first-run copies official `agent.cordis.yml` + `preset.yml`, then appends dsh-ssh-remote plugin row; first-root-wins: user preset overrides official, mode name unchanged) — SSH tools appear directly in all your existing modes
+> 5. Removes the old "SSH Enhanced Mode" (first version leftover, no longer needed as a separate mode)
 >
-> 脚本幂等：重复运行不会重复添加；卸载用 `bash install.sh --uninstall`（会从各模式移除 SSH 行并删除 symlink）。
+> Script is idempotent: running again won't duplicate entries. Uninstall with `bash install.sh --uninstall` (removes SSH rows from each mode preset and deletes symlink).
 
 ---
 
-## 🛠 手动安装（想自己控制每一步时）
+## 🛠 Manual Installation (step-by-step)
 
-与 `install.sh` 等价，分步如下：
+Equivalent to `install.sh`, for users who want control:
 
-### 第 1 步：克隆并安装插件依赖
+### Step 1: Clone and install plugin dependencies
 ```bash
 git clone https://github.com/cslht11/dsh-ssh-remote.git
 cd dsh-ssh-remote
-npm install --no-save     # 安装 ssh2 / schemastery 等依赖
+npm install --no-save     # installs ssh2 / schemastery etc.
 ```
 
-### 第 2 步：注册进 profile 的 node_modules
-让 preset 的 bare name `dsh-ssh-remote` 能被解析（baseUrl = profile 目录）：
+### Step 2: Register into profile's node_modules
+So the preset's bare name `dsh-ssh-remote` can be resolved (baseUrl = profile dir):
 ```bash
 mkdir -p ~/.dsh/profiles/web/node_modules
 ln -sfn "$PWD" ~/.dsh/profiles/web/node_modules/dsh-ssh-remote
 ```
 
-### 第 3 步：增强每个官方模式（SSH 工具加入现有模式）
-对你要用的每个模式（standard / code / minimal / cordis）逐个执行：把官方 preset 复制到用户 preset 目录 `~/.dsh/.agent-presets/<模式名>/`，再追加插件行。以全部四个为例：
+### Step 3: Enhance each official mode (add SSH tools to existing modes)
+For each mode you use (standard / code / minimal / cordis), copy the official preset to user preset dir `~/.dsh/.agent-presets/<mode>/`, then append the plugin row. Example for all four:
 ```bash
 GLOBAL_ROOT=$(npm root -g)
 for p in standard code minimal cordis; do
   mkdir -p ~/.dsh/.agent-presets/$p
-  # 首次：复制官方原版（之后保留，不覆盖）
+  # First run: copy official original (preserve afterwards, don't overwrite)
   [ -f ~/.dsh/.agent-presets/$p/agent.cordis.yml ] || \
     cp "$GLOBAL_ROOT/@deepseek-ai/dsh/config/agent-presets/$p/agent.cordis.yml" \
        ~/.dsh/.agent-presets/$p/agent.cordis.yml
   [ -f ~/.dsh/.agent-presets/$p/preset.yml ] || \
     cp "$GLOBAL_ROOT/@deepseek-ai/dsh/config/agent-presets/$p/preset.yml" \
        ~/.dsh/.agent-presets/$p/preset.yml
-  # 追加 SSH 插件行（幂等）
+  # Append SSH plugin row (idempotent)
   grep -q "name: 'dsh-ssh-remote'" ~/.dsh/.agent-presets/$p/agent.cordis.yml || \
     cat >> ~/.dsh/.agent-presets/$p/agent.cordis.yml << 'EOF'
 
-# ── SSH 远程工作区（dsh-ssh-remote 插件）───────────────────────────────────
+# ── SSH Remote Workspace (dsh-ssh-remote plugin) ────────────────────────────
 - id: ssh-remote
   name: 'dsh-ssh-remote'
   config: {}
 EOF
 done
 ```
-> 原理与 `install.sh` 第 4 步一致：用户 preset 与官方**同名**（first-root-wins 覆盖），模式名不变、工具自动多一组。
+> Same principle as `install.sh` step 4: user preset has the **same name** as official (first-root-wins override), mode name unchanged, tools automatically added.
 
-### 第 4 步：重启
+### Step 4: Restart
 ```bash
 kill $(pgrep -f 'dsh web') 2>/dev/null; dsh web
 ```
-打开 DSH Web → 新会话直接选你平时用的模式（standard / code / minimal / cordis 任选，均已含 `rw_*` 工具）。
+Open DSH Web → new session, select any mode you normally use (standard / code / minimal / cordis all now have `rw_*` tools).
 
 ---
 
-## 🛠 使用示例
+## 🛠 Usage Examples
 
-### 对话方式（模型直接驱动 SSH）
+### Conversational mode (model-driven SSH)
 
 ```
-我在 192.168.1.10 和 192.168.1.20 有两台服务器，帮我：
-1. rw_connect 添加 192.168.1.10（root，密钥 /Users/me/.ssh/id_rsa）
-2. rw_connect 添加 192.168.1.20（root，密码 xxx）
-3. rw_pick_workspace (machineId=<第一台id>, path=/srv/app)
-4. rw_exec (machineId=<第一台id>, command='docker compose ps')
-5. rw_list_dir (machineId=<第一台id>, path=/srv/app) 看文件
-6. rw_read_file (machineId=<第一台id>, path=/srv/app/src/main.py)
-7. rw_write_file (machineId=<第一台id>, path=/srv/app/config.yml, content='...')
-8. rw_sync (machineId=<第一台id>) 把远程工作区镜像到本地 ~/.dsh/remote-workspaces/
+I have two servers at 192.168.1.10 and 192.168.1.20, please:
+1. rw_connect add 192.168.1.10 (root, key /Users/me/.ssh/id_rsa)
+2. rw_connect add 192.168.1.20 (root, password xxx)
+3. rw_pick_workspace (machineId=<first-id>, path=/srv/app)
+4. rw_exec (machineId=<first-id>, command='docker compose ps')
+5. rw_list_dir (machineId=<first-id>, path=/srv/app) to see files
+6. rw_read_file (machineId=<first-id>, path=/srv/app/src/main.py)
+7. rw_write_file (machineId=<first-id>, path=/srv/app/config.yml, content='...')
+8. rw_sync (machineId=<first-id>) mirror remote workspace to local ~/.dsh/remote-workspaces/
 ```
 
-### 工具一览（都支持 `machineId` 指定目标机，不传 = 当前机）
+### Tool reference (all support `machineId` to target specific machine; omit = current machine)
 
-| 工具 | 作用 |
+| Tool | Purpose |
 |---|---|
-| `rw_info` | 查看**全部**已注册机器及连接状态、当前工作区 |
-| `rw_connect` | 注册/连接一台机器（新机器传 host/user/password/privateKeyPath） |
-| `rw_switch` | 切换当前机器（后续不传 machineId 时默认用它） |
-| `rw_pick_workspace` | 为指定机器设置远程工作区目录 |
-| `rw_list_dir` / `rw_read_file` | 浏览 / 读取远程文件 |
-| `rw_write_file` | 直接写远程文件（自动建父目录） |
-| `rw_exec` | 在远程执行 shell 命令 |
-| `rw_sync` / `rw_push` | 远程↔本地镜像 双向 SFTP 同步 |
-| `rw_disconnect` | 断开指定机器（其他机器不受影响） |
+| `rw_info` | View **all** registered machines, connection status, and current workspace |
+| `rw_connect` | Register/connect a machine (pass host/user/password/privateKeyPath for new machines) |
+| `rw_switch` | Switch current machine (subsequent calls without machineId default to this one) |
+| `rw_pick_workspace` | Set remote workspace directory for a specific machine |
+| `rw_list_dir` / `rw_read_file` | Browse / read remote files |
+| `rw_write_file` | Write remote file directly (auto-creates parent directories) |
+| `rw_exec` | Execute shell commands on remote |
+| `rw_sync` / `rw_push` | Remote ↔ local mirror bidirectional SFTP sync |
+| `rw_disconnect` | Disconnect specific machine (other machines unaffected) |
 
-### 设置面板方式
+### Settings panel mode
 
-浏览器 DSH Web → **设置 → 远程工作区**：增删改查机器、测试连接、切换当前机。
-
----
-
-## 🔄 适配其他 DSH 版本 / 其他设备
-
-**本插件适配 `@deepseek-ai/dsh@0.1.1-rc.2`**（以 `~/.dsh/.agent-presets/` 下**同名用户 preset 覆盖**机制挂载进现有模式）。换到其他版本时：
-
-1. **DSH 官方升级后**：通常 preset 机制不变，`bash install.sh --uninstall && bash install.sh` 重装即可（脚本幂等，会检测版本）。
-2. **其他设备部署**：任意机器上 `git clone` → `bash install.sh` → 重启 DSH 即可，无需手动复制任何文件（依赖、symlink、preset 全部自动完成）。
-3. **多台机器**：插件的机器注册表存在 `~/.dsh/remote-workspaces/machines.json`，每台设备独立维护；如需多设备共享同一批机器，可手动把该文件复制到新设备。
+Browser DSH Web → **Settings → Remote Workspace**: add/edit/delete machines, test connection, switch current machine.
 
 ---
 
-## ↩️ 卸载
+## 🔄 Adapting to Other DSH Versions / Other Machines
+
+**This plugin targets `@deepseek-ai/dsh@0.1.1-rc.2`** (mounted into existing modes via **same-named user preset** override under `~/.dsh/.agent-presets/`). For other versions:
+
+1. **After official DSH upgrade**: usually preset mechanism unchanged; `bash install.sh --uninstall && bash install.sh` to reinstall (script is idempotent, detects version).
+2. **Deploying to another machine**: `git clone` → `bash install.sh` → restart DSH; no manual file copying needed (deps, symlink, presets all automated).
+3. **Multiple machines**: plugin's machine registry lives in `~/.dsh/remote-workspaces/machines.json`, maintained independently per machine; to share the same machine list across devices, manually copy that file.
+
+---
+
+## ↩️ Uninstall
 
 ```bash
-# 一键卸载（推荐）
+# One-click uninstall (recommended)
 bash install.sh --uninstall
 
-# 或手动：删除 symlink，再从各模式 preset 移除 SSH 插件行
+# Or manually: delete symlink, then remove SSH plugin block from each mode's preset
 rm -f ~/.dsh/profiles/web/node_modules/dsh-ssh-remote
-# 然后用编辑器在各 ~/.dsh/.agent-presets/<模式名>/agent.cordis.yml 中删除
-# 末尾的「SSH 远程工作区」插件块；模式本身保留（其余行是官方原版）
+# Then edit each ~/.dsh/.agent-presets/<mode>/agent.cordis.yml and delete
+# the "SSH Remote Workspace" plugin block at the end; the rest is official original
 ```
 
 ---
 
-## 🔗 相关
+## 🔗 Related
 
-- 补丁集仓库（输入历史 + 编辑重发）：<https://github.com/cslht11/dsh-custom-patches>
-- 上游 dsh-remote：<https://github.com/flymysql/dsh-remote>
-- DeepSeek Harness 官方：<https://github.com/deepseek-ai/deepseek-harness>
+- Patches repo (input history + edit & regenerate): <https://github.com/cslht11/dsh-custom-patches>
+- Upstream dsh-remote: <https://github.com/flymysql/dsh-remote>
+- DeepSeek Harness official: <https://github.com/deepseek-ai/deepseek-harness>
