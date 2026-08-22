@@ -1,4 +1,6 @@
 # dsh-ssh-remote
+> 📖 [中文版](README.zh.md)
+
 
 DeepSeek Harness (DSH) SSH Remote Workspace Plugin — **multi-machine parallel edition**: manage multiple servers, **maintain multiple SSH connections simultaneously**, pick a remote workspace on each, and let your Agent directly view / edit / execute remote files.
 
