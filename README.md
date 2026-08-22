@@ -69,15 +69,16 @@ bash install.sh
 kill $(pgrep -f 'dsh web') 2>/dev/null; dsh web
 ```
 
-然后浏览器打开 DSH Web → **新建会话 → 选择预设「SSH 增强模式」**，即可使用 `rw_*` 工具。
+然后重启 DSH、打开 DSH Web → **新建会话 → 选你平时用的模式即可**（standard / code / minimal / cordis 都已内置 `rw_*` 工具，无需切换新模式）。
 
 > **install.sh 自动做了什么：**
 > 1. 定位 DSH 全局安装目录（`npm root -g`）
 > 2. 在本仓库目录安装依赖（ssh2 / schemastery），使插件自包含
 > 3. 将插件 symlink 到 `~/.dsh/profiles/web/node_modules/dsh-ssh-remote`（让 preset 的 bare name 可解析）
-> 4. 创建用户预设 `~/.dsh/.agent-presets/ssh-enhanced/`：基于**官方 standard 预设**（继承全部官方工具），并追加 dsh-ssh-remote 一行（挂载进 agent scope）
+> 4. **增强每个官方模式**：对 standard / code / minimal / cordis 各建**同名用户 preset**（首次复制官方原版 agent.cordis.yml + preset.yml，再追加 dsh-ssh-remote 插件行；first-root-wins：用户 preset 覆盖官方，模式名不变）——SSH 工具直接出现在你现有的每个模式里
+> 5. 移除旧的「SSH 增强模式」（首个版本遗留，现已不需要单独模式）
 >
-> 脚本幂等：重复运行不会重复添加；卸载用 `bash install.sh --uninstall`。
+> 脚本幂等：重复运行不会重复添加；卸载用 `bash install.sh --uninstall`（会从各模式移除 SSH 行并删除 symlink）。
 
 ---
 
@@ -99,35 +100,37 @@ mkdir -p ~/.dsh/profiles/web/node_modules
 ln -sfn "$PWD" ~/.dsh/profiles/web/node_modules/dsh-ssh-remote
 ```
 
-### 第 3 步：创建用户 preset（挂载插件进 agent scope）
+### 第 3 步：增强每个官方模式（SSH 工具加入现有模式）
+对你要用的每个模式（standard / code / minimal / cordis）逐个执行：把官方 preset 复制到用户 preset 目录 `~/.dsh/.agent-presets/<模式名>/`，再追加插件行。以全部四个为例：
 ```bash
-# 3.1 定位 DSH 安装目录，复制官方 standard preset 作为 base（继承全部官方工具）
 GLOBAL_ROOT=$(npm root -g)
-mkdir -p ~/.dsh/.agent-presets/ssh-enhanced
-cp "$GLOBAL_ROOT/@deepseek-ai/dsh/config/agent-presets/standard/agent.cordis.yml" \
-   ~/.dsh/.agent-presets/ssh-enhanced/agent.cordis.yml
-```
+for p in standard code minimal cordis; do
+  mkdir -p ~/.dsh/.agent-presets/$p
+  # 首次：复制官方原版（之后保留，不覆盖）
+  [ -f ~/.dsh/.agent-presets/$p/agent.cordis.yml ] || \
+    cp "$GLOBAL_ROOT/@deepseek-ai/dsh/config/agent-presets/$p/agent.cordis.yml" \
+       ~/.dsh/.agent-presets/$p/agent.cordis.yml
+  [ -f ~/.dsh/.agent-presets/$p/preset.yml ] || \
+    cp "$GLOBAL_ROOT/@deepseek-ai/dsh/config/agent-presets/$p/preset.yml" \
+       ~/.dsh/.agent-presets/$p/preset.yml
+  # 追加 SSH 插件行（幂等）
+  grep -q "name: 'dsh-ssh-remote'" ~/.dsh/.agent-presets/$p/agent.cordis.yml || \
+    cat >> ~/.dsh/.agent-presets/$p/agent.cordis.yml << 'EOF'
 
-在 `~/.dsh/.agent-presets/ssh-enhanced/agent.cordis.yml` 末尾追加：
-```yaml
-# ── SSH 远程工作区（dsh-ssh-remote 插件）────────────────────────────────────
+# ── SSH 远程工作区（dsh-ssh-remote 插件）───────────────────────────────────
 - id: ssh-remote
   name: 'dsh-ssh-remote'
   config: {}
+EOF
+done
 ```
+> 原理与 `install.sh` 第 4 步一致：用户 preset 与官方**同名**（first-root-wins 覆盖），模式名不变、工具自动多一组。
 
-创建元数据 `~/.dsh/.agent-presets/ssh-enhanced/preset.yml`：
-```yaml
-name: SSH 增强模式
-description: 标准编码 Agent + 多机 SSH 远程工作区。
-order: 50
-```
-
-### 第 4 步：重启并选择 preset
+### 第 4 步：重启
 ```bash
 kill $(pgrep -f 'dsh web') 2>/dev/null; dsh web
 ```
-浏览器打开 DSH Web → 新会话的预设选择里选 **「SSH 增强模式」**。
+打开 DSH Web → 新会话直接选你平时用的模式（standard / code / minimal / cordis 任选，均已含 `rw_*` 工具）。
 
 ---
 
@@ -169,7 +172,7 @@ kill $(pgrep -f 'dsh web') 2>/dev/null; dsh web
 
 ## 🔄 适配其他 DSH 版本 / 其他设备
 
-**本插件适配 `@deepseek-ai/dsh@0.1.1-rc.2`**（以 `~/.dsh/.agent-presets/` 用户预设机制挂载）。换到其他版本时：
+**本插件适配 `@deepseek-ai/dsh@0.1.1-rc.2`**（以 `~/.dsh/.agent-presets/` 下**同名用户 preset 覆盖**机制挂载进现有模式）。换到其他版本时：
 
 1. **DSH 官方升级后**：通常 preset 机制不变，`bash install.sh --uninstall && bash install.sh` 重装即可（脚本幂等，会检测版本）。
 2. **其他设备部署**：任意机器上 `git clone` → `bash install.sh` → 重启 DSH 即可，无需手动复制任何文件（依赖、symlink、preset 全部自动完成）。
@@ -183,9 +186,10 @@ kill $(pgrep -f 'dsh web') 2>/dev/null; dsh web
 # 一键卸载（推荐）
 bash install.sh --uninstall
 
-# 或手动：
-rm -rf ~/.dsh/profiles/web/node_modules/dsh-ssh-remote
-rm -rf ~/.dsh/.agent-presets/ssh-enhanced
+# 或手动：删除 symlink，再从各模式 preset 移除 SSH 插件行
+rm -f ~/.dsh/profiles/web/node_modules/dsh-ssh-remote
+# 然后用编辑器在各 ~/.dsh/.agent-presets/<模式名>/agent.cordis.yml 中删除
+# 末尾的「SSH 远程工作区」插件块；模式本身保留（其余行是官方原版）
 ```
 
 ---
