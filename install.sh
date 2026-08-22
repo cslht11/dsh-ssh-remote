@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# install.sh — dsh-ssh-remote 一键安装（DSH 0.1.0-rc.8）
+# install.sh — dsh-ssh-remote 一键安装（DSH 0.1.1-rc.2）
 #
 # 设计原则：不新增「SSH 专用模式」。SSH 工具加入所有**现有模式**
 # （standard / code / minimal / cordis），本地与远程都是同一套模式，

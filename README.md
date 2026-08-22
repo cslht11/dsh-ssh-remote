@@ -2,7 +2,7 @@
 
 DeepSeek Harness (DSH) 的 SSH 远程工作区插件——**多机并行版**：管理多台服务器、**同时保持多个 SSH 连接**，在每台上选择远程工作区，Agent 可直接查看 / 编辑 / 执行远程文件。
 
-> 适配版本：**`@deepseek-ai/dsh@0.1.0-rc.8`**（profile 上运行的 DSH Web）
+> 适配版本：**`@deepseek-ai/dsh@0.1.1-rc.2`**（profile 上运行的 DSH Web）
 
 ---
 
@@ -26,12 +26,12 @@ DeepSeek Harness (DSH) 的 SSH 远程工作区插件——**多机并行版**：
 | 目标选择 | 仅 current 机 | 所有工具/路由支持 `machineId` 参数（不传 = current 机） |
 | 状态查看 | 单机状态 | `rw_info` / `/dsh-ssh-remote/status` 列出**全部机器**及各自连接状态 |
 | 新增工具 | — | `rw_switch`（切换 current）、`rw_disconnect(指定机)` |
-| rc.8 适配 | ❌ peerDeps 仍为 `^0.1.0-rc.6`，装上会破坏 scope 链 | ✅ 按 rc.8 **用户 preset** 挂载，进入 agent scope，不破坏核心功能 |
+| rc.2 适配 | ❌ peerDeps 仍为 `^0.1.0-rc.6`，装上会破坏 scope 链 | ✅ 按 rc.2 **用户 preset** 挂载，进入 agent scope，不破坏核心功能 |
 
 ### 贡献归属
 
 - 底层 SSH 引擎、SFTP 同步、机器注册表、多数 `rw_*` 工具与前端设置面板：来自 **flymysql/dsh-remote**
-- 多池并行改造、`machineId` 参数、`rw_switch`、rc.8 preset 适配：本仓库（cslht11）的增量修改
+- 多池并行改造、`machineId` 参数、`rw_switch`、rc.2 preset 适配：本仓库（cslht11）的增量修改
 - 上游如有新版本，欢迎优先参考上游变更并合并：<https://github.com/flymysql/dsh-remote>
 
 ---
@@ -55,7 +55,7 @@ DeepSeek Harness (DSH) 的 SSH 远程工作区插件——**多机并行版**：
 
 ## 🚀 安装（一键脚本，推荐）
 
-适配 DSH **0.1.0-rc.8**。在一台装好 DSH 的机器上，只需三步：
+适配 DSH **0.1.1-rc.2**。在一台装好 DSH 的机器上，只需三步：
 
 ```bash
 # 1) 克隆本项目
@@ -169,7 +169,7 @@ kill $(pgrep -f 'dsh web') 2>/dev/null; dsh web
 
 ## 🔄 适配其他 DSH 版本 / 其他设备
 
-**本插件适配 `@deepseek-ai/dsh@0.1.0-rc.8`**（以 `~/.dsh/.agent-presets/` 用户预设机制挂载）。换到其他版本时：
+**本插件适配 `@deepseek-ai/dsh@0.1.1-rc.2`**（以 `~/.dsh/.agent-presets/` 用户预设机制挂载）。换到其他版本时：
 
 1. **DSH 官方升级后**：通常 preset 机制不变，`bash install.sh --uninstall && bash install.sh` 重装即可（脚本幂等，会检测版本）。
 2. **其他设备部署**：任意机器上 `git clone` → `bash install.sh` → 重启 DSH 即可，无需手动复制任何文件（依赖、symlink、preset 全部自动完成）。
