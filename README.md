@@ -84,6 +84,31 @@ Then restart DSH, open DSH Web → **new session → select your usual mode** (s
 
 ---
 
+### Alternative: Install via official DSH plugin command
+
+This plugin also supports the standard DSH plugin system. Install it with `dsh plugin add`:
+
+```bash
+# 1) Clone this repo
+git clone https://github.com/cslht11/dsh-ssh-remote.git
+cd dsh-ssh-remote
+
+# 2) Install via official plugin command
+dsh plugin --profile web add file:$(pwd)
+
+# 3) Restart DSH
+kill $(pgrep -f 'dsh web') 2>/dev/null; dsh web
+```
+
+This method registers the plugin as a profile bundle (the same layer used by `dsh plugin add` for any DSH plugin). It automatically handles dependency resolution, and the plugin's front-end UI components (Settings → 远程工作区 panel) are loaded automatically.
+
+To uninstall:
+```bash
+dsh plugin --profile web remove dsh-ssh-remote
+```
+
+---
+
 ## 🛠 Manual Installation (step-by-step)
 
 Equivalent to `install.sh`, for users who want control:
