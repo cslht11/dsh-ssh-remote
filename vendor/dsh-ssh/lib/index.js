@@ -3594,14 +3594,10 @@ function apply(ctx, config) {
 		engine
 	});
 	let disposeRoutes;
-	const tools = [
-		sshListTool(engine),
-		sshExecTool(engine),
-		sshUploadTool(engine),
-		sshDownloadTool(engine),
-		sshTunnelTool(engine),
-		sshClusterTool(engine)
-	];
+	// SSH 运维工具（ssh_list/ssh_exec/ssh_upload/ssh_download/ssh_tunnel/ssh_cluster）
+	// 已禁用：为避免与 dsh-ssh-remote 的 rw_* 和 easyssh 的 remote_* 三套工具混淆，
+	// 这里只保留 SSH 引擎 / host 管理 API / 网页终端（easyssh 与面板依赖它们）。
+	const tools = [];
 	let disposeTools;
 	let disposeSection;
 	const sync = () => {
