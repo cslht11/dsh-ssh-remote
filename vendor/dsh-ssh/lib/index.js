@@ -1187,32 +1187,6 @@ var HostStore = class {
 		this.save(file);
 	}
 	/**
-	* Record a recently-opened remote workspace folder for a host (VS Code
-	* Remote-SSH style MRU). Deduplicates by path and keeps the newest 10.
-	* @param alias - host alias.
-	* @param folderPath - absolute remote directory that was opened.
-	*/
-	setRecentFolder(alias, folderPath) {
-		const file = this.load();
-		const entry = file.hosts.find((candidate) => candidate.alias === alias);
-		if (entry === void 0) throw new Error(`alias '${alias}' not found`);
-		const list = Array.isArray(entry.recentFolders) ? entry.recentFolders : [];
-		const path = typeof folderPath === "string" ? folderPath.replace(/\/+$/, "") : "";
-		if (path === "") return;
-		const deduped = list.filter((item) => item.path !== path);
-		deduped.unshift({ path, openedAt: Date.now() });
-		entry.recentFolders = deduped.slice(0, 10);
-		entry.updatedAt = Date.now();
-		this.save(file);
-		return entry.recentFolders;
-	}
-	/** Read the recently-opened folders for a host (newest first). */
-	recentFolders(alias) {
-		const entry = this.find(alias);
-		if (entry === void 0 || !Array.isArray(entry.recentFolders)) return [];
-		return [...entry.recentFolders];
-	}
-	/**
 	* Import hosts from `~/.ssh/config`: Host blocks with a single non-wildcard
 	* pattern and a HostName become entries (key auth via IdentityFile, jump
 	* hosts via ProxyJump). Existing aliases are skipped.
@@ -3594,10 +3568,14 @@ function apply(ctx, config) {
 		engine
 	});
 	let disposeRoutes;
-	// SSH 运维工具（ssh_list/ssh_exec/ssh_upload/ssh_download/ssh_tunnel/ssh_cluster）
-	// 已禁用：为避免与 dsh-ssh-remote 的 rw_* 和 easyssh 的 remote_* 三套工具混淆，
-	// 这里只保留 SSH 引擎 / host 管理 API / 网页终端（easyssh 与面板依赖它们）。
-	const tools = [];
+	const tools = [
+		sshListTool(engine),
+		sshExecTool(engine),
+		sshUploadTool(engine),
+		sshDownloadTool(engine),
+		sshTunnelTool(engine),
+		sshClusterTool(engine)
+	];
 	let disposeTools;
 	let disposeSection;
 	const sync = () => {

@@ -1380,8 +1380,7 @@ const WORKSPACE_API = {
 	state: "/api/dsh-easyssh/state",
 	tree: "/api/dsh-easyssh/tree",
 	file: "/api/dsh-easyssh/file",
-	search: "/api/dsh-easyssh/search",
-	recent: "/api/dsh-easyssh/recent"
+	search: "/api/dsh-easyssh/search"
 };
 //#endregion
 //#region src/routes.ts
@@ -1550,7 +1549,6 @@ function makeRoutes(deps) {
 						remoteRoot,
 						remoteRootLabel: label
 					});
-					try { hosts.setRecentFolder(alias, remoteRoot); } catch {}
 					writeJson(res, 200, { state: store.getSnapshot() });
 					return;
 				}
@@ -1640,34 +1638,6 @@ function makeRoutes(deps) {
 				}
 				try {
 					writeJson(res, 200, { search: await backend().search(root, query) });
-				} catch (error) {
-					writeJson(res, backendStatus(toBackendError(error)), { error: messageOf(error) });
-				}
-			}
-		},
-		{
-			kind: "exact",
-			path: WORKSPACE_API.recent,
-			handler: async (req, res) => {
-				// GET /api/dsh-easyssh/recent → every host's recently-opened folders
-				// (VS Code Remote-SSH style MRU), newest first, for quick reopen.
-				if ((req.method ?? "GET") !== "GET") {
-					writeJson(res, 405, { error: "method not allowed" });
-					return;
-				}
-				try {
-					const all = hosts.list();
-					const recent = all
-						.map((entry) => ({
-							alias: entry.alias,
-							host: entry.host,
-							port: entry.port,
-							user: entry.user,
-							folders: typeof hosts.recentFolders === "function" ? hosts.recentFolders(entry.alias) : []
-						}))
-						.filter((entry) => entry.folders.length > 0)
-						.sort((a, b) => (b.folders[0]?.openedAt ?? 0) - (a.folders[0]?.openedAt ?? 0));
-					writeJson(res, 200, { recent });
 				} catch (error) {
 					writeJson(res, backendStatus(toBackendError(error)), { error: messageOf(error) });
 				}
