@@ -1600,17 +1600,20 @@ window.__ModuleLoader__.load({
 					inject: () => ({ mode })
 				}, RemoteWorkspaceBadge));
 				mode.start();
-				ctx.slots.inject("settings.section", () => ctx.slots.register({
-					name: "settings.section",
-					id: "ssh-workspace-hosts",
-					order: 100,
-					label: () => tt("settings.label"),
-					inject: () => ({
-						mode,
-						api,
-						hostsApi
-					})
-				}, HostSettingsPage));
+				// 「SSH 远程工作区」设置面板已禁用：与 dsh-ssh-remote 的「远程工作区」
+				// 面板冗余。配置主机 / 进入 SSH 模式统一走右上角 SSH 按钮
+				// (conversation.session.header.actions) 与 HostSettingsPage 对话框。
+				// ctx.slots.inject("settings.section", () => ctx.slots.register({
+				// 	name: "settings.section",
+				// 	id: "ssh-workspace-hosts",
+				// 	order: 100,
+				// 	label: () => tt("settings.label"),
+				// 	inject: () => ({
+				// 		mode,
+				// 		api,
+				// 		hostsApi
+				// 	})
+				// }, HostSettingsPage));
 			} catch (error) {
 				console.warn("[dsh-easyssh] mount failed:", error);
 			}
