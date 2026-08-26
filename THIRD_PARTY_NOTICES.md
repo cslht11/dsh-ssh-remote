@@ -54,6 +54,21 @@ SOFTWARE.
 - **许可证**：以官方仓库 [LICENSE](https://github.com/deepseek-ai/deepseek-harness) 为准
 - **用法**：本项目是 DSH 的插件，运行于 DSH 的插件体系内；插件本体代码与本仓库其余原创内容另行以本仓库 LICENSE（MIT）授权
 
+## 5. dsh-aionui-panel（vendored，`vendor/dsh-aionui-panel`）
+
+- **项目**：[chenw2759-wq/dsh-IDE](https://github.com/chenw2759-wq/dsh-IDE)（包超集）
+- **包名**：`@deepseek-ai/dsh-client-ui-aionui-panel`
+- **许可证**：BSD 3-Clause License，`Copyright (c) 2026, dsh-web-ui contributors`（见 `vendor/dsh-aionui-panel/LICENSE`）
+- **用途**：DSH Web GUI 右侧面板系统（文件树 / 预览 / 编辑 / 终端 / diff）
+- **说明**：面板设计参考 [iOfficeAI/AionUi](https://github.com/iOfficeAI/AionUi)（Apache-2.0）重新实现，非直接拷贝代码
+
+## 6. dsh-ssh（vendored，`vendor/dsh-ssh`）
+
+- **项目**：[chenw2759-wq/dsh-IDE](https://github.com/chenw2759-wq/dsh-IDE)（包超集）
+- **包名**：`@deepseek-ai/dsh-ssh`
+- **许可证**：BSD 3-Clause License，`Copyright (c) 2026, dsh-easyssh contributors`（见 `vendor/dsh-ssh/LICENSE`）
+- **用途**：SSH 引擎（连接池、隧道、网页终端）与 `ssh_*` agent 工具
+
 ---
 
-*本项目 README、LICENSE、代码头部注释均保留了上游版权声明与归属，遵守 MIT License 的再分发要求。*
+*本项目 README、LICENSE、代码头部注释均保留了上游版权声明与归属，遵守 MIT License 与 BSD-3-Clause 的再分发要求。Vendored 组件保留各自原始 LICENSE。*

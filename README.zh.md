@@ -36,6 +36,27 @@ DeepSeek Harness (DSH) 的 SSH 远程工作区插件——**多机并行版**：
 - 多池并行改造、`machineId` 参数、`rw_switch`、rc.2 preset 适配：本仓库（cslht11）的增量修改
 - 上游如有新版本，欢迎优先参考上游变更并合并：<https://github.com/flymysql/dsh-remote>
 
+### vendored 组件（`vendor/` 目录）
+
+本仓库同时收录了 **chenw2759-wq/dsh-IDE**（BSD-3-Clause）的两个已构建包，用于在同一个安装里提供 IDE 风格右侧面板与 SSH 引擎：
+
+| 目录 | 包名 | 来源 | 协议 |
+|---|---|---|---|
+| `vendor/dsh-aionui-panel` | `@deepseek-ai/dsh-client-ui-aionui-panel` | [chenw2759-wq/dsh-IDE](https://github.com/chenw2759-wq/dsh-IDE) | BSD-3-Clause |
+| `vendor/dsh-ssh` | `@deepseek-ai/dsh-ssh` | [chenw2759-wq/dsh-IDE](https://github.com/chenw2759-wq/dsh-IDE) | BSD-3-Clause |
+
+说明：
+- `dsh-aionui-panel` 提供右侧面板（文件树 / 预览 / 编辑 / 终端 / diff）。其面板设计参考 [iOfficeAI/AionUi](https://github.com/iOfficeAI/AionUi)（Apache-2.0）重新实现，详见其 LICENSE。
+- `dsh-ssh` 提供 SSH 引擎（连接池、隧道、网页终端）与 `ssh_*` agent 工具。
+- 每个 vendored 目录都保留了 dsh-IDE 原始的 BSD-3-Clause LICENSE。完整声明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
+与主插件一起安装：
+
+```bash
+dsh plugin --profile web add file:$(pwd)/vendor/dsh-aionui-panel
+dsh plugin --profile web add file:$(pwd)/vendor/dsh-ssh
+```
+
 ---
 
 ## ✨ 功能

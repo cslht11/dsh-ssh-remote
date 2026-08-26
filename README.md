@@ -36,6 +36,27 @@ This project is built on the following open-source project (**not entirely origi
 - Multi-pool parallel refactor, `machineId` parameter, `rw_switch`, rc.2 preset adaptation: incremental changes by this repo (cslht11)
 - When upstream publishes new versions, we优先参考上游变更并合并: <https://github.com/flymysql/dsh-remote>
 
+### Vendored components (under `vendor/`)
+
+This repo also vendors two built packages from **chenw2759-wq/dsh-IDE** (BSD-3-Clause), to deliver the IDE-style right panel and the SSH engine in the same installation:
+
+| Directory | Package | Origin | License |
+|---|---|---|---|
+| `vendor/dsh-aionui-panel` | `@deepseek-ai/dsh-client-ui-aionui-panel` | [chenw2759-wq/dsh-IDE](https://github.com/chenw2759-wq/dsh-IDE) | BSD-3-Clause |
+| `vendor/dsh-ssh` | `@deepseek-ai/dsh-ssh` | [chenw2759-wq/dsh-IDE](https://github.com/chenw2759-wq/dsh-IDE) | BSD-3-Clause |
+
+Notes:
+- `dsh-aionui-panel` provides the right-side panels (file tree / preview / editor / terminal / diff). Its panel design references [iOfficeAI/AionUi](https://github.com/iOfficeAI/AionUi) (Apache-2.0), re-implemented — see its LICENSE.
+- `dsh-ssh` provides the SSH engine (connection pool, tunnels, web terminal) and the `ssh_*` agent tools.
+- Each vendored directory keeps its original BSD-3-Clause LICENSE from dsh-IDE. Full notices in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+Install them alongside this plugin:
+
+```bash
+dsh plugin --profile web add file:$(pwd)/vendor/dsh-aionui-panel
+dsh plugin --profile web add file:$(pwd)/vendor/dsh-ssh
+```
+
 ---
 
 ## ✨ Features
