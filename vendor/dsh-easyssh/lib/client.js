@@ -12,7 +12,8 @@ window.__ModuleLoader__.load({
 			state: "/api/dsh-easyssh/state",
 			tree: "/api/dsh-easyssh/tree",
 			file: "/api/dsh-easyssh/file",
-			search: "/api/dsh-easyssh/search"
+			search: "/api/dsh-easyssh/search",
+			recent: "/api/dsh-easyssh/recent"
 		};
 		//#endregion
 		//#region src/client/api.ts
@@ -68,6 +69,9 @@ window.__ModuleLoader__.load({
 						remoteRoot
 					})
 				}))).state;
+			}
+			async recent() {
+				return (await readJson(await fetch(WORKSPACE_API.recent))).recent ?? [];
 			}
 			async list(root, path) {
 				return (await readJson(await fetch(WORKSPACE_API.tree + query({
@@ -183,6 +187,7 @@ window.__ModuleLoader__.load({
 			"dialog.saved": "主机已保存",
 			"dialog.enterHint": "测试通过后即可进入 SSH 模式；左侧面板将显示远程文件树，文件操作由 Agent 经 SSH 完成",
 			"dialog.existing": "已配置主机（点击直接进入）",
+			"dialog.recent": "最近打开（点击快速重开）",
 			"panel.empty": "打开一个会话后显示文件树",
 			"panel.search": "按文件名搜索…",
 			"panel.loading": "加载中…",
@@ -242,6 +247,7 @@ window.__ModuleLoader__.load({
 			"dialog.saved": "Host saved",
 			"dialog.enterHint": "Once the test passes you can enter SSH mode; the left panel shows the remote tree and the Agent edits files over SSH",
 			"dialog.existing": "Saved hosts (click to enter)",
+			"dialog.recent": "Recent (click to reopen)",
 			"panel.empty": "Open a session to see the file tree",
 			"panel.search": "Search filenames…",
 			"panel.loading": "Loading…",
@@ -466,6 +472,19 @@ window.__ModuleLoader__.load({
 					});
 				}
 			};
+			const openRecent = async (alias, folderPath) => {
+				setPicking(alias);
+				try {
+					await props.mode.setRemote(alias, folderPath);
+					props.onClose();
+				} catch (error) {
+					setPicking(null);
+					setPhase({
+						kind: "failed",
+						message: error instanceof Error ? error.message : String(error)
+					});
+				}
+			};
 			/** Fill the form from an existing host for editing (secrets left blank so
 			*  an untouched auth keeps the stored one). */
 			const startEdit = (host) => {
@@ -641,6 +660,32 @@ window.__ModuleLoader__.load({
 									]
 								}, host.alias)),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { className: workspace_module_css_default.hostPickerDivider })
+							]
+						}),
+						recent.length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: workspace_module_css_default.hostPicker,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+									className: workspace_module_css_default.hostPickerTitle,
+									children: tt("dialog.recent")
+								}),
+								recent.map((entry) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: workspace_module_css_default.hostRow,
+									children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+											className: workspace_module_css_default.hostAlias,
+											children: entry.alias
+										}),
+										entry.folders.map((folder) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											type: "button",
+											className: `${workspace_module_css_default.button} ${workspace_module_css_default.hostEnter}`,
+											disabled: picking === entry.alias,
+											onClick: () => void openRecent(entry.alias, folder.path),
+											title: entry.user + "@" + entry.host + ":" + entry.port,
+											children: folder.path
+										}, folder.path + entry.alias))
+									]
+								}, entry.alias))
 							]
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
@@ -928,6 +973,7 @@ window.__ModuleLoader__.load({
 			const [busy, setBusy] = (0, react.useState)(false);
 			const [roots, setRoots] = (0, react.useState)({});
 			const [rootInput, setRootInput] = (0, react.useState)("");
+			const [recent, setRecent] = (0, react.useState)([]);
 			const refresh = async () => {
 				try {
 					setHosts(await props.hostsApi.list());
@@ -941,6 +987,7 @@ window.__ModuleLoader__.load({
 			};
 			(0, react.useEffect)(() => {
 				refresh();
+				props.api.recent().then((r) => setRecent(Array.isArray(r) ? r : [])).catch(() => setRecent([]));
 			}, []);
 			const set = (key, value) => {
 				setForm((prev) => ({
