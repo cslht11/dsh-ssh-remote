@@ -861,6 +861,23 @@ window.__ModuleLoader__.load({
 					if (remote) props.mode.setLocal();
 					else props.mode.setRemote(alias);
 				},
+				style: {
+					background: "transparent",
+					border: "none",
+					color: "inherit",
+					cursor: "pointer",
+					display: "inline-flex",
+					alignItems: "center",
+					gap: 4,
+					height: 28,
+					padding: "0 6px",
+					borderRadius: 8,
+					fontSize: 13,
+					fontWeight: 500,
+					whiteSpace: "nowrap"
+				},
+				onMouseEnter: (e) => { e.currentTarget.style.background = "var(--dsw-alias-interactive-bg-hover, rgba(128,128,128,0.15))"; },
+				onMouseLeave: (e) => { e.currentTarget.style.background = "transparent"; },
 				children: [remote ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
 					viewBox: "0 0 16 16",
 					width: "14",
@@ -1543,16 +1560,8 @@ window.__ModuleLoader__.load({
 			try {
 				ctx.slots.inject("conversation.session.header.utilities", () => {
 					const unregister = [];
-					unregister.push(ctx.slots.register({
-						name: "conversation.session.header.utilities",
-						id: "ssh-workspace-connect",
-						order: -10,
-						inject: () => ({
-							mode,
-							api,
-							hostsApi
-						})
-					}, ConnectButton));
+					// ConnectButton 主入口已统一挂到输入框左侧（input.left），
+					// 这里不再重复挂 ConnectButton，只保留本地⇄远程切换按钮。
 					unregister.push(ctx.slots.register({
 						name: "conversation.session.header.utilities",
 						id: "ssh-workspace-toggle",
