@@ -805,6 +805,23 @@ window.__ModuleLoader__.load({
 				onClick: () => {
 					openConfigDialog(props.mode, props.api, props.hostsApi);
 				},
+				style: {
+					background: "transparent",
+					border: "none",
+					color: "inherit",
+					cursor: "pointer",
+					display: "inline-flex",
+					alignItems: "center",
+					gap: 4,
+					height: 28,
+					padding: "0 6px",
+					borderRadius: 8,
+					fontSize: 13,
+					fontWeight: 500,
+					whiteSpace: "nowrap"
+				},
+				onMouseEnter: (e) => { e.currentTarget.style.background = "var(--dsw-alias-interactive-bg-hover, rgba(128,128,128,0.15))"; },
+				onMouseLeave: (e) => { e.currentTarget.style.background = "transparent"; },
 				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
 					viewBox: "0 0 16 16",
 					width: "14",
