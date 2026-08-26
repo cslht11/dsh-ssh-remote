@@ -4697,6 +4697,18 @@ window.__ModuleLoader__.load({
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 						type: "button",
 						className: explorer_module_css_default.contextItem,
+						onClick: () => {
+							const full = menu.path === "" ? root : (root === "/" ? "/" + menu.path : root + "/" + menu.path);
+							try {
+								navigator.clipboard.writeText(full).catch(() => {});
+							} catch (_e) {}
+							onClose();
+						},
+						children: t("common.copyPath")
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						type: "button",
+						className: explorer_module_css_default.contextItem,
 						onClick: paste,
 						disabled: clipboard === null || clipboard.root !== root,
 						children: t("explorer.menuPaste")
