@@ -1939,7 +1939,7 @@ const AIONUI_PANEL_GUIDANCE = "本机已安装 dsh-aionui-panel 插件（DSH Web
 */
 function apply(ctx) {
 	const gate = createWorkspaceGate(ctx);
-	const getRemote = () => ctx.get("sshWorkspaceCore");
+	const getRemote = () => ctx.get("easysshCore");
 	const fs = new FsService(gate, getRemote);
 	const git = new GitService(subprocessRunner(ctx), gate, (root, rel) => fs.delete(root, rel));
 	const exec = { async run(command, cwd, timeoutMs) {
