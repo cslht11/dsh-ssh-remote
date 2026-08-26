@@ -2185,7 +2185,7 @@ function apply(ctx, config) {
 		hosts,
 		engine
 	};
-	ctx.provide("easysshCore", core);
+	ctx.provide("sshWorkspaceCore", core);
 	if (!resolved.enabled) return;
 	const routes = makeRoutes({
 		store,
