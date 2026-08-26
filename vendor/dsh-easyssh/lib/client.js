@@ -1546,6 +1546,15 @@ window.__ModuleLoader__.load({
 						for (const dispose of unregister) dispose();
 					};
 				});
+				// SSH 主入口同时挂到输入框左侧（conversation.input.left）：
+				// 空会话(blank)时官方隐藏 header，header 里的 SSH 按钮不可见；
+				// 输入框在空会话仍显示，这里保证全新对话也能直接进入 SSH 模式。
+				ctx.slots.inject("conversation.input.left", () => ctx.slots.register({
+					name: "conversation.input.left",
+					id: "ssh-workspace-connect-composer",
+					order: -100,
+					inject: () => ({ mode, api, hostsApi })
+				}, ConnectButton));
 				ctx.slots.inject("conversation.session.header.actions", () => ctx.slots.register({
 					name: "conversation.session.header.actions",
 					id: "ssh-workspace-badge",
