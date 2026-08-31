@@ -247,3 +247,14 @@ rm -f ~/.dsh/profiles/web/node_modules/dsh-ssh-remote
 - Patches repo (input history + edit & regenerate): <https://github.com/cslht11/dsh-custom-patches>
 - Upstream dsh-remote: <https://github.com/flymysql/dsh-remote>
 - DeepSeek Harness official: <https://github.com/deepseek-ai/deepseek-harness>
+
+---
+
+## ⚠️ DSH 0.1.2-alpha.2 适配预研（2026-08-30）
+
+> **预发布**（npm `latest` 仍为 `0.1.1-rc.2`），架构级重构，**建议等官方稳定版再升级**。
+
+- 官方重构：`dsh-host-apiproxy` / `dsh-client-runtime` 包消失，功能拆分到 `dsh-base` / `dsh-app-boot` / `dsh-session-*`。
+- 本插件的 vendored 组件（easyssh / dsh-ssh / aionui-panel）import 的是 `dsh-ssh` / `dsh-tools` / `dsh-settings` 三个独立包——这三个包在 alpha 下均有 `0.1.2-alpha.2` 版本（不受主包拆包影响），**依赖面兼容风险低**。
+- 升级前需验证的接口：`ctx.provide("easysshCore")` / `ctx.get("easysshCore")`（easyssh↔aionui-panel 的服务名）、`settings.section`、`conversation.input.left` 等 slot 在 alpha 下是否保留。
+- 当前环境保持 rc.2，等稳定版发布后再按本表验证适配。
