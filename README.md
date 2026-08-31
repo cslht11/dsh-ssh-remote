@@ -268,4 +268,5 @@ rm -f ~/.dsh/profiles/web/node_modules/dsh-ssh-remote
   settings.installSection(ctx, SSH_SETTINGS_NAMESPACE, Config, config ?? {}, { setSource, onChange });
   ```
   （agent-loop alpha 里 `ctx.inject(["settings"], (c) => c.settings.installSection(...))` 是官方示例。）
+- **slot 兼容验证（alpha）**：插件依赖的所有 slot 在 alpha 均保留 ✅——`conversation.session.header.utilities/actions`、`conversation.input.left/right`、`conversation.composer.bar`、`sidebar.workspaces`、`settings.general.item`。即 easyssh 的挂载点（input.left / header）在 alpha 下继续有效，插件主要适配点就是上面的 settings API 迁移。
 - 当前环境保持 rc.2，等稳定版发布后再按本表验证适配。
