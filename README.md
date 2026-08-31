@@ -258,4 +258,14 @@ rm -f ~/.dsh/profiles/web/node_modules/dsh-ssh-remote
 - 本插件的 vendored 组件（easyssh / dsh-ssh / aionui-panel）import 的是 `dsh-ssh` / `dsh-tools` / `dsh-settings` 三个独立包——这三个包在 alpha 下均有 `0.1.2-alpha.2` 版本（不受主包拆包影响），**依赖面兼容风险低**。
 - 升级前需验证的接口：`ctx.provide("easysshCore")` / `ctx.get("easysshCore")`（easyssh↔aionui-panel 的服务名）、`settings.section`、`conversation.input.left` 等 slot 在 alpha 下是否保留。
 - **已验证的破坏点（预研）**：vendored `dsh-ssh` 从 `dsh-settings` import 的 `installSettingsSection` / `settingsNamespace` 在 alpha **消失**（dsh-settings 0.1.2-alpha.2 中 grep 为 0，rc.2 为 3）→ 升级需改用新设置 API。`dsh-tools` 的 `defineTool` 保留 ✅。
+- **设置 API 迁移（alpha）**：`installSettingsSection` → `SettingsProvider.installSection`。替换方式：
+  ```js
+  // rc.2
+  import { installSettingsSection, settingsNamespace } from "@deepseek-ai/dsh-settings";
+  installSettingsSection(ctx, SSH_SETTINGS_NAMESPACE, Config, config ?? {}, { setSource, onChange });
+  // alpha（需 ctx.get("settings") 为 SettingsProvider 实例）
+  const settings = ctx.get("settings"); // 或经 inject(["settings"])
+  settings.installSection(ctx, SSH_SETTINGS_NAMESPACE, Config, config ?? {}, { setSource, onChange });
+  ```
+  （agent-loop alpha 里 `ctx.inject(["settings"], (c) => c.settings.installSection(...))` 是官方示例。）
 - 当前环境保持 rc.2，等稳定版发布后再按本表验证适配。
