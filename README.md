@@ -257,4 +257,5 @@ rm -f ~/.dsh/profiles/web/node_modules/dsh-ssh-remote
 - 官方重构：`dsh-host-apiproxy` / `dsh-client-runtime` 包消失，功能拆分到 `dsh-base` / `dsh-app-boot` / `dsh-session-*`。
 - 本插件的 vendored 组件（easyssh / dsh-ssh / aionui-panel）import 的是 `dsh-ssh` / `dsh-tools` / `dsh-settings` 三个独立包——这三个包在 alpha 下均有 `0.1.2-alpha.2` 版本（不受主包拆包影响），**依赖面兼容风险低**。
 - 升级前需验证的接口：`ctx.provide("easysshCore")` / `ctx.get("easysshCore")`（easyssh↔aionui-panel 的服务名）、`settings.section`、`conversation.input.left` 等 slot 在 alpha 下是否保留。
+- **已验证的破坏点（预研）**：vendored `dsh-ssh` 从 `dsh-settings` import 的 `installSettingsSection` / `settingsNamespace` 在 alpha **消失**（dsh-settings 0.1.2-alpha.2 中 grep 为 0，rc.2 为 3）→ 升级需改用新设置 API。`dsh-tools` 的 `defineTool` 保留 ✅。
 - 当前环境保持 rc.2，等稳定版发布后再按本表验证适配。
