@@ -6,7 +6,7 @@ If you discover a security vulnerability in this project, please report it priva
 
 **Do not disclose it publicly until we've had a chance to address it.**
 
-Please email security concerns to heitieya@163.com with:
+Please email security concerns to chai011379@gmail.com with:
 - A description of the vulnerability
 - Steps to reproduce it
 - Potential impact
