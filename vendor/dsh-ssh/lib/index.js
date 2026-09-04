@@ -1,4 +1,4 @@
-import { installSettingsSection, settingsNamespace } from "@deepseek-ai/dsh-settings";
+import { SettingsProvider } from "@deepseek-ai/dsh-settings";
 import { createServer } from "node:net";
 import { createReadStream, createWriteStream, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
@@ -3533,7 +3533,7 @@ const inject = [
 * surface edits. Spelled here rather than imported: the browser half spells
 * the same value and must not depend on a Host package.
 */
-const SSH_SETTINGS_NAMESPACE = settingsNamespace("dsh-ssh");
+const SSH_SETTINGS_NAMESPACE = "dsh-ssh";
 const Config = import_lib.default.object({
 	announceToAgent: import_lib.default.boolean().default(true),
 	enabled: import_lib.default.boolean().default(true)
@@ -3613,12 +3613,16 @@ function apply(ctx, config) {
 			};
 		}, "dsh-ssh: tools");
 	};
-	installSettingsSection(ctx, SSH_SETTINGS_NAMESPACE, Config, config ?? {}, {
-		setSource: (source) => {
-			current = source;
-			sync();
-		},
-		onChange: sync
+	ctx.inject(["settings"], (settingsCtx) => {
+		const settings = settingsCtx.settings;
+		if (settings === void 0 || typeof settings.installSection !== "function") return;
+		settings.installSection(ctx, SSH_SETTINGS_NAMESPACE, Config, config ?? {}, {
+			setSource: (source) => {
+				current = source;
+				sync();
+			},
+			onChange: sync
+		});
 	});
 	sync();
 }
