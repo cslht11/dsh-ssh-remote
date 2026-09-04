@@ -3,10 +3,10 @@
   "version": "0.6.0",
   "description": "SSH 远程工作区插件（多机并行版）：管理多台服务器、同时保持多个 SSH 连接，在每台上选择远程工作区，Agent 用 rw_* 工具直接查看/修改/执行远程文件。基于 dsh-remote (MIT) 改造，支持多池并行连接。",
   "license": "MIT",
-  "author": "cslht11",
+  "author": "chai1110",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cslht11/dsh-ssh-remote.git"
+    "url": "git+https://github.com/chai1110/dsh-ssh-remote.git"
   },
   "keywords": [
     "deepseek-harness",

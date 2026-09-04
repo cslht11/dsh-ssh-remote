@@ -4,7 +4,7 @@
 
 DeepSeek Harness (DSH) SSH Remote Workspace Plugin — **multi-machine parallel edition**: manage multiple servers, **maintain multiple SSH connections simultaneously**, pick a remote workspace on each, and let your Agent directly view / edit / execute remote files.
 
-> Target version: **`@deepseek-ai/dsh@0.1.1-rc.2`** (DSH Web running on profile)
+> Target version: **`@deepseek-ai/dsh@0.1.2-rc.1` (latest)** (DSH Web running on profile). Older DSH versions (0.1.1-rc.2 etc.) are also supported — see "Adapting to Other DSH Versions".
 
 ---
 
@@ -33,7 +33,7 @@ This project is built on the following open-source project (**not entirely origi
 ### Contribution attribution
 
 - Underlying SSH engine, SFTP sync, machine registry, most `rw_*` tools, and frontend settings panel: from **flymysql/dsh-remote**
-- Multi-pool parallel refactor, `machineId` parameter, `rw_switch`, rc.2 preset adaptation: incremental changes by this repo (cslht11)
+- Multi-pool parallel refactor, `machineId` parameter, `rw_switch`, rc.2 preset adaptation: incremental changes by this repo (chai1110)
 - When upstream publishes new versions, we优先参考上游变更并合并: <https://github.com/flymysql/dsh-remote>
 
 ### Vendored components (under `vendor/`)
@@ -78,11 +78,11 @@ dsh plugin --profile web add file:$(pwd)/vendor/dsh-ssh
 
 ## 🚀 Installation (one-click script, recommended)
 
-Targets DSH **0.1.1-rc.2**. On a machine with DSH installed, three steps:
+Targets DSH **0.1.2-rc.1** (older 0.1.1-rc.2 etc. are also supported — see "Adapting to Other DSH Versions"). On a machine with DSH installed, three steps:
 
 ```bash
 # 1) Clone this repo
-git clone https://github.com/cslht11/dsh-ssh-remote.git
+git clone https://github.com/chai1110/dsh-ssh-remote.git
 cd dsh-ssh-remote
 
 # 2) One-click install (auto-installs deps + registers symlink + creates SSH-enhanced presets)
@@ -111,7 +111,7 @@ This plugin also supports the standard DSH plugin system. Install it with `dsh p
 
 ```bash
 # 1) Clone this repo
-git clone https://github.com/cslht11/dsh-ssh-remote.git
+git clone https://github.com/chai1110/dsh-ssh-remote.git
 cd dsh-ssh-remote
 
 # 2) Install via official plugin command
@@ -136,7 +136,7 @@ Equivalent to `install.sh`, for users who want control:
 
 ### Step 1: Clone and install plugin dependencies
 ```bash
-git clone https://github.com/cslht11/dsh-ssh-remote.git
+git clone https://github.com/chai1110/dsh-ssh-remote.git
 cd dsh-ssh-remote
 npm install --no-save     # installs ssh2 / schemastery etc.
 ```
@@ -220,7 +220,7 @@ Browser DSH Web → **Settings → Remote Workspace**: add/edit/delete machines,
 
 ## 🔄 Adapting to Other DSH Versions / Other Machines
 
-**This plugin targets `@deepseek-ai/dsh@0.1.1-rc.2`** (mounted into existing modes via **same-named user preset** override under `~/.dsh/.agent-presets/`). For other versions:
+**This plugin targets latest `@deepseek-ai/dsh@0.1.2-rc.1`, and also works with older 0.1.1-rc.2 etc.** (mounted into existing modes via **same-named user preset** override under `~/.dsh/.agent-presets/`). For other versions:
 
 1. **After official DSH upgrade**: usually preset mechanism unchanged; `bash install.sh --uninstall && bash install.sh` to reinstall (script is idempotent, detects version).
 2. **Deploying to another machine**: `git clone` → `bash install.sh` → restart DSH; no manual file copying needed (deps, symlink, presets all automated).
@@ -244,7 +244,7 @@ rm -f ~/.dsh/profiles/web/node_modules/dsh-ssh-remote
 
 ## 🔗 Related
 
-- Patches repo (input history + edit & regenerate): <https://github.com/cslht11/dsh-custom-patches>
+- Patches repo (input history + edit & regenerate): <https://github.com/chai1110/dsh-custom-patches>
 - Upstream dsh-remote: <https://github.com/flymysql/dsh-remote>
 - DeepSeek Harness official: <https://github.com/deepseek-ai/deepseek-harness>
 

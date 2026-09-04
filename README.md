@@ -4,7 +4,8 @@
 
 DeepSeek Harness (DSH) 的 SSH 远程工作区插件——**多机并行版**：管理多台服务器、**同时保持多个 SSH 连接**，在每台上选择远程工作区，Agent 可直接查看 / 编辑 / 执行远程文件。
 
-> 适配版本：**`@deepseek-ai/dsh@0.1.1-rc.2`**（profile 上运行的 DSH Web）
+> 适配版本：**`@deepseek-ai/dsh@0.1.2-rc.1`（最新）**（profile 上运行的 DSH Web）。
+> ⚠️ 本插件以「同名用户 preset 覆盖」机制挂载，**DSH 官方升级后重跑一次安装脚本即可继续使用**（已有用户实测在 rc.2 → rc.1 架构重构版下正常工作）；老版本 DSH 用户同样适用，见「🔄 适配其他 DSH 版本」。
 
 ---
 
@@ -33,7 +34,7 @@ DeepSeek Harness (DSH) 的 SSH 远程工作区插件——**多机并行版**：
 ### 贡献归属
 
 - 底层 SSH 引擎、SFTP 同步、机器注册表、多数 `rw_*` 工具与前端设置面板：来自 **flymysql/dsh-remote**
-- 多池并行改造、`machineId` 参数、`rw_switch`、rc.2 preset 适配：本仓库（cslht11）的增量修改
+- 多池并行改造、`machineId` 参数、`rw_switch`、rc.2 preset 适配：本仓库（chai1110）的增量修改
 - 上游如有新版本，欢迎优先参考上游变更并合并：<https://github.com/flymysql/dsh-remote>
 
 ### vendored 组件（`vendor/` 目录）
@@ -78,11 +79,11 @@ dsh plugin --profile web add file:$(pwd)/vendor/dsh-ssh
 
 ## 🚀 安装（一键脚本，推荐）
 
-适配 DSH **0.1.1-rc.2**。在一台装好 DSH 的机器上，只需三步：
+适配 DSH **0.1.2-rc.1**（老版本 0.1.1-rc.2 等同样适用，见「🔄 适配其他 DSH 版本」）。在一台装好 DSH 的机器上，只需三步：
 
 ```bash
 # 1) 克隆本项目
-git clone https://github.com/cslht11/dsh-ssh-remote.git
+git clone https://github.com/chai1110/dsh-ssh-remote.git
 cd dsh-ssh-remote
 
 # 2) 一键安装（自动装依赖 + 注册 symlink + 创建 SSH 增强预设）
@@ -111,7 +112,7 @@ kill $(pgrep -f 'dsh web') 2>/dev/null; dsh web
 
 ### 第 1 步：克隆并安装插件依赖
 ```bash
-git clone https://github.com/cslht11/dsh-ssh-remote.git
+git clone https://github.com/chai1110/dsh-ssh-remote.git
 cd dsh-ssh-remote
 npm install --no-save     # 安装 ssh2 / schemastery 等依赖
 ```
@@ -195,7 +196,7 @@ kill $(pgrep -f 'dsh web') 2>/dev/null; dsh web
 
 ## 🔄 适配其他 DSH 版本 / 其他设备
 
-**本插件适配 `@deepseek-ai/dsh@0.1.1-rc.2`**（以 `~/.dsh/.agent-presets/` 下**同名用户 preset 覆盖**机制挂载进现有模式）。换到其他版本时：
+**本插件适配最新 `@deepseek-ai/dsh@0.1.2-rc.1`，同时兼容更早的 0.1.1-rc.2 等版本**（以 `~/.dsh/.agent-presets/` 下**同名用户 preset 覆盖**机制挂载进现有模式）。换到其他版本时：
 
 1. **DSH 官方升级后**：通常 preset 机制不变，`bash install.sh --uninstall && bash install.sh` 重装即可（脚本幂等，会检测版本）。
 2. **其他设备部署**：任意机器上 `git clone` → `bash install.sh` → 重启 DSH 即可，无需手动复制任何文件（依赖、symlink、preset 全部自动完成）。
@@ -219,6 +220,6 @@ rm -f ~/.dsh/profiles/web/node_modules/dsh-ssh-remote
 
 ## 🔗 相关
 
-- 补丁集仓库（输入历史 + 编辑重发）：<https://github.com/cslht11/dsh-custom-patches>
+- 补丁集仓库（输入历史 + 编辑重发）：<https://github.com/chai1110/dsh-custom-patches>
 - 上游 dsh-remote：<https://github.com/flymysql/dsh-remote>
 - DeepSeek Harness 官方：<https://github.com/deepseek-ai/deepseek-harness>
