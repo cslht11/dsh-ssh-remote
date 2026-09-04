@@ -202,6 +202,8 @@ kill $(pgrep -f 'dsh web') 2>/dev/null; dsh web
 2. **其他设备部署**：任意机器上 `git clone` → `bash install.sh` → 重启 DSH 即可，无需手动复制任何文件（依赖、symlink、preset 全部自动完成）。
 3. **多台机器**：插件的机器注册表存在 `~/.dsh/remote-workspaces/machines.json`，每台设备独立维护；如需多设备共享同一批机器，可手动把该文件复制到新设备。
 
+> **版本管理方式**：本仓库用 git tag 标记适配点（如 `v0.1.2-rc.1`）。由于 preset 挂载机制跨 DSH 版本通用，**同一套代码即可适配各版本**——升级 DSH 后重跑 install.sh 即可，无需 checkout 不同 tag。
+
 ---
 
 ## ↩️ 卸载
