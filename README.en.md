@@ -226,6 +226,8 @@ Browser DSH Web → **Settings → Remote Workspace**: add/edit/delete machines,
 2. **Deploying to another machine**: `git clone` → `bash install.sh` → restart DSH; no manual file copying needed (deps, symlink, presets all automated).
 3. **Multiple machines**: plugin's machine registry lives in `~/.dsh/remote-workspaces/machines.json`, maintained independently per machine; to share the same machine list across devices, manually copy that file.
 
+> **Version management**: this repo uses git tags to mark adaptation points (e.g. `v0.1.2-rc.1`). Because the preset-mount mechanism works across DSH versions, **one codebase fits all versions** — after a DSH upgrade just re-run install.sh, no need to checkout a different tag.
+
 ---
 
 ## ↩️ Uninstall
